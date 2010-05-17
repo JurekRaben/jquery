@@ -135,7 +135,7 @@ jQuery.fn.extend({
 		console.log("removeDelay for element "+this.selector+", id "+id);
 		if ( q ) {
 			console.log("removeDelay for element "+this.selector+", id "+id + " has data "+q);
-			//clearTimeout( q );
+			clearTimeout( q );
 			jQuery.removeData( this[0], type + "timeout" + id );
 		}
 			
