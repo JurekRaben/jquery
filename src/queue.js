@@ -1,4 +1,6 @@
 jQuery.extend({
+	delayTimeouts: {},
+	
 	queue: function( elem, type, data ) {
 		if ( !elem ) {
 			return;
@@ -47,6 +49,7 @@ jQuery.extend({
 });
 
 jQuery.fn.extend({
+	
 	queue: function( type, data ) {
 		if ( typeof type !== "string" ) {
 			data = type;
@@ -72,19 +75,96 @@ jQuery.fn.extend({
 
 	// Based off of the plugin by Clint Helfers, with permission.
 	// http://blindsignals.com/index.php/2009/07/jquery-delay/
-	delay: function( time, type ) {
+	delay: function( ) {
+		var id, time, type, parent;
+	    if ( typeof arguments[0] !== 'string' ) {
+			time = arguments[0];
+			type = arguments[1];
+		}
+		else {
+			id = arguments[0];
+			time = arguments[1];
+			type = arguments[2];
+		}
+		
+		parent = this;
 		time = jQuery.fx ? jQuery.fx.speeds[time] || time : time;
 		type = type || "fx";
+		id = id || (type + jQuery.now() + Math.random() * 9999999 );
+
+		if ( !jQuery.delayTimeouts[this.selector] ) {
+			jQuery.delayTimeouts[this.selector] = {};
+		}
+		jQuery.delayTimeouts[this.selector][id] = true;
+		console.log("addDelay for element "+this.selector+", id "+id);
+
+	    function setTimeoutFunc( elem, type, id ) {
+	      	return setTimeout(function() {
+				if (!jQuery.delayTimeouts[parent.selector]) return;
+				if (!jQuery.delayTimeouts[parent.selector][id]) {
+					delete jQuery.delayTimeouts[parent.selector][id];
+					console.log("Delay for element "+parent.selector+", id "+id+" not executed");
+					return;
+				}
+				jQuery.dequeue( elem, type );
+				jQuery.removeData( elem, type + "timeout" + id );
+				console.log("Delay for element "+parent.selector+", id "+id+" executed");
+				delete jQuery.delayTimeouts[parent.selector][id];
+			}, time );
+	    };
 
 		return this.queue( type, function() {
-			var elem = this;
-			setTimeout(function() {
-				jQuery.dequeue( elem, type );
-			}, time );
+			jQuery.data( this, type + "timeout" + id, setTimeoutFunc( this, type, id ) );
 		});
 	},
 
+	removeDelay: function( id, type ) {
+		var idTemp, numTimeouts = 0;
+		type = type || "fx";
+		
+		if ( !jQuery.delayTimeouts[this.selector] ) return;
+
+		for ( idTemp in jQuery.delayTimeouts[this.selector] ) {
+			if ( jQuery.delayTimeouts[this.selector][idTemp] ) numTimeouts++;
+		}
+		console.log("removeDelay for element "+this.selector+" has "+numTimeouts+ " timeouts");
+		
+		id = id || idTemp;
+
+		var q = jQuery.data( this[0], type + "timeout" + id );
+		console.log("removeDelay for element "+this.selector+", id "+id);
+		if ( q ) {
+			console.log("removeDelay for element "+this.selector+", id "+id + " has data "+q);
+			//clearTimeout( q );
+			jQuery.removeData( this[0], type + "timeout" + id );
+		}
+			
+		if ( !jQuery.delayTimeouts[this.selector] ) {
+			jQuery.delayTimeouts[this.selector] = {};
+		}
+		jQuery.delayTimeouts[this.selector][id] = false;
+
+		if (numTimeouts == 1) {
+			this.clearQueue( type );
+		}
+
+		return q;
+	}, 
+
 	clearQueue: function( type ) {
-		return this.queue( type || "fx", [] );
+		var numTimeouts = 0;
+		if ( jQuery.delayTimeouts[this.selector] ) {
+			for ( var id in jQuery.delayTimeouts[this.selector] ) {
+				if ( jQuery.delayTimeouts[this.selector] && jQuery.delayTimeouts[this.selector][id] ) {
+					numTimeouts++;
+					this.removeDelay( id, type );
+				}
+			}
+			delete jQuery.delayTimeouts[this.selector];
+		}
+		if (!numTimeouts) {
+			console.log("queue cleared");
+			return this.queue( type || "fx", [] );
+		}
 	}
 });
