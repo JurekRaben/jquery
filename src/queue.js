@@ -96,19 +96,16 @@ jQuery.fn.extend({
 			jQuery.delayTimeouts[this.selector] = {};
 		}
 		jQuery.delayTimeouts[this.selector][id] = true;
-		console.log("addDelay for element "+this.selector+", id "+id);
 
 	    function setTimeoutFunc( elem, type, id ) {
 	      	return setTimeout(function() {
 				if (!jQuery.delayTimeouts[parent.selector]) return;
 				if (!jQuery.delayTimeouts[parent.selector][id]) {
 					delete jQuery.delayTimeouts[parent.selector][id];
-					console.log("Delay for element "+parent.selector+", id "+id+" not executed");
 					return;
 				}
 				jQuery.dequeue( elem, type );
 				jQuery.removeData( elem, type + "timeout" + id );
-				console.log("Delay for element "+parent.selector+", id "+id+" executed");
 				delete jQuery.delayTimeouts[parent.selector][id];
 			}, time );
 	    };
@@ -125,24 +122,20 @@ jQuery.fn.extend({
 		if ( !jQuery.delayTimeouts[this.selector] ) return;
 
 		for ( idTemp in jQuery.delayTimeouts[this.selector] ) {
-			if ( jQuery.delayTimeouts[this.selector][idTemp] ) numTimeouts++;
+			numTimeouts++;
 		}
-		console.log("removeDelay for element "+this.selector+" has "+numTimeouts+ " timeouts");
 		
 		id = id || idTemp;
 
 		var q = jQuery.data( this[0], type + "timeout" + id );
-		console.log("removeDelay for element "+this.selector+", id "+id);
 		if ( q ) {
-			console.log("removeDelay for element "+this.selector+", id "+id + " has data "+q);
 			clearTimeout( q );
 			jQuery.removeData( this[0], type + "timeout" + id );
 		}
 			
-		if ( !jQuery.delayTimeouts[this.selector] ) {
-			jQuery.delayTimeouts[this.selector] = {};
+		if ( jQuery.delayTimeouts[this.selector][id] ) {
+			delete jQuery.delayTimeouts[this.selector][id];
 		}
-		jQuery.delayTimeouts[this.selector][id] = false;
 
 		if (numTimeouts == 1) {
 			this.clearQueue( type );
@@ -155,15 +148,12 @@ jQuery.fn.extend({
 		var numTimeouts = 0;
 		if ( jQuery.delayTimeouts[this.selector] ) {
 			for ( var id in jQuery.delayTimeouts[this.selector] ) {
-				if ( jQuery.delayTimeouts[this.selector] && jQuery.delayTimeouts[this.selector][id] ) {
-					numTimeouts++;
-					this.removeDelay( id, type );
-				}
+				numTimeouts++;
+				this.removeDelay( id, type );
 			}
 			delete jQuery.delayTimeouts[this.selector];
 		}
 		if (!numTimeouts) {
-			console.log("queue cleared");
 			return this.queue( type || "fx", [] );
 		}
 	}

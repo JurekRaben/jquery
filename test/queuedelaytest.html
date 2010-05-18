@@ -39,6 +39,7 @@ Currently you need to clear all delays of an element, before you can append new 
 	<div class="fourth">fourth</div>
 	<div class="fifth">fifth</div>
 	<div class="sixth">sixth</div>
+	<div class="seventh">seventh</div>
 <script type="text/javascript">
 $("button").click(function() {
  	$("div.first").delay("timeout1",800).fadeTo(400,0).delay(800).fadeTo(400,1);
@@ -64,6 +65,11 @@ $("button").click(function() {
 	$("div.sixth").removeDelay("timeout1");
 	$("div.sixth").removeDelay();
 	$("div.sixth").delay("timeout1",2800).fadeTo(0,1).fadeTo(400,0.5);
+	
+	$("div.seventh").delay(800).fadeTo(400,0).delay("timeout1",800).fadeTo(400,1);
+	$("div.seventh").removeDelay("timeout1");
+	$("div.seventh").removeDelay();
+	$("div.seventh").delay("timeout1",2800).fadeTo(0,1).fadeTo(400,0.5);
 });
 </script>
 </body>
